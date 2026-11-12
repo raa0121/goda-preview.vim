@@ -1,0 +1,228 @@
+*goda_preview.txt*	Preview Markdown, AsciiDoc, reStructuredText and Textile
+
+CONTENTS                                               *goda-preview-contents*
+
+Introduction		|goda-preview-introduction|
+Install			|goda-preview-install|
+Commands		|goda-preview-commands|
+Functions		|goda-preview-functions|
+Variables		|goda-preview-variables|
+Security		|goda-preview-security|
+
+==============================================================================
+INTRODUCTION                                       *goda-preview-introduction*
+                                                                *goda-preview*
+
+goda-preview.vim shows the current buffer in the browser and updates the page
+as you edit it, unsaved changes included.  The page follows the cursor: line
+by line for Markdown and AsciiDoc, in proportion for reStructuredText and
+Textile.
+
+Supported filetypes: "markdown", "asciidoc" (also "asciidoctor"), "rst" and
+"textile".  Of a compound filetype ("markdown.pandoc"), the first supported
+part is used.
+
+Markdown is CommonMark with the GFM extensions (tables, task lists,
+strikethrough, autolinks), footnotes, definition lists and East Asian line
+breaks.  ```mermaid blocks are drawn by mermaid in the page.  ```plantuml
+blocks are drawn by |g:goda_preview#plantuml_server| when it is set.  The
+code blocks are highlighted by |g:goda_preview#code_style|.
+
+                                                           *goda-preview-math*
+TeX math is drawn by KaTeX in the page.  In Markdown: >
+	Inline $e^{i\pi} + 1 = 0$, and $$\sum_n x_n$$ displayed.
+
+	$$
+	\int_0^1 x\,dx
+	$$
+
+	```math
+	\frac{1}{2}
+	```
+<	An inline $ is not followed by a space, and its closing $ is neither
+preceded by a space nor followed by a digit, so "$5 and $10" stays text.
+Write \$ for a dollar sign that would be taken for math.  Inline math ends
+on its line.  ```katex is the same as ```math.
+
+In reStructuredText, the "math" role and directive.  In AsciiDoc, latexmath:
+the stem macro and block with ":stem: latexmath", or the latexmath macro.
+AsciiMath is not drawn.
+
+                                                       *goda-preview-asciidoc*
+AsciiDoc is converted in the page by asciidoctor.js
+(|g:goda_preview#asciidoctor_url|), in its secure mode: the include directive
+becomes a link, and nothing is read from files or URLs.  Passthrough blocks
+are rendered whatever |g:goda_preview#unsafe_html| says, but their scripts
+never run.  The code is not highlighted.
+
+Images with a relative URL are served from the directory of the file.
+
+==============================================================================
+INSTALL                                                 *goda-preview-install*
+
+Requirements:
+- Vim 9.1 or later with |+job|, |+channel| and |+timers|, or Neovim 0.11 or
+  later.
+- goda.vim (|goda.txt|).
+- Go 1.27.1 or later to build the binary.
+
+Build the binary with |:GodaPreviewBuild| once, and again after updating
+goda-preview.vim.
+
+==============================================================================
+COMMANDS                                               *goda-preview-commands*
+
+                                                            *:GodaPreviewOpen*
+:GodaPreviewOpen
+		Open the preview of the current buffer in the browser.
+
+                                                           *:GodaPreviewClose*
+:GodaPreviewClose
+		End the preview of the current buffer.  The page in the browser
+		says "(closed)" in its title.
+
+                                                         *:GodaPreviewRefresh*
+:GodaPreviewRefresh
+		Send the current buffer now, without waiting for
+		|g:goda_preview#delay|.
+
+                                                           *:GodaPreviewBuild*
+:GodaPreviewBuild
+		Build the binary into |g:goda_preview#binary| with
+		|goda#build()|.  The running one is stopped, and the next
+		preview starts the new one.
+
+==============================================================================
+FUNCTIONS                                             *goda-preview-functions*
+
+goda_preview#open()                                     *goda_preview#open()*
+		As |:GodaPreviewOpen|.
+
+goda_preview#close([{bufnr}])                          *goda_preview#close()*
+		End the preview of the buffer {bufnr}, the current one when
+		omitted.
+
+goda_preview#refresh()                               *goda_preview#refresh()*
+		As |:GodaPreviewRefresh|.
+
+goda_preview#build()                                   *goda_preview#build()*
+		As |:GodaPreviewBuild|.
+
+goda_preview#url()                                       *goda_preview#url()*
+		The URL of the preview of the current buffer, or "" when it
+		has none.
+
+==============================================================================
+VARIABLES                                             *goda-preview-variables*
+
+The variables are read by |:GodaPreviewOpen| and on every write of the
+buffer.  The stylesheet variables apply to pages loaded after that.
+
+                                              *g:goda_preview#custom_css_path*
+g:goda_preview#custom_css_path
+		A stylesheet loaded after the default one.  The page reloads it
+		whenever the file changes.  The content is in an element with
+		the class "goda-preview".
+		Default: ""
+
+                                          *g:goda_preview#disable_default_css*
+g:goda_preview#disable_default_css
+		Do not load the default stylesheet.
+		Default: 0
+
+                                              *g:goda_preview#plantuml_server*
+g:goda_preview#plantuml_server
+		The base URL of a PlantUML server.  A ```plantuml block becomes
+		an image of "{server}/svg/{encoded source}".  When it is empty,
+		the blocks stay code, and their source is sent nowhere. >vim
+			let g:goda_preview#plantuml_server = 'http://localhost:8080'
+<		Default: ""
+
+                                                  *g:goda_preview#mermaid_url*
+g:goda_preview#mermaid_url
+		The URL of the mermaid script, loaded by pages with a ```mermaid
+		block.  It must be an http(s) URL.
+		Default: a fixed version of mermaid on cdn.jsdelivr.net
+
+                                                    *g:goda_preview#katex_url*
+g:goda_preview#katex_url
+		The directory of katex.min.js and katex.min.css (and their
+		fonts), loaded by pages with math.  It must be an http(s) URL.
+		Default: a fixed version of KaTeX on cdn.jsdelivr.net
+
+                                              *g:goda_preview#asciidoctor_url*
+g:goda_preview#asciidoctor_url
+		The browser build of asciidoctor.js (version 4 or later, an ES
+		module), loaded by pages of AsciiDoc.  It must be an http(s)
+		URL.
+		Default: a fixed version of @asciidoctor/core on
+		cdn.jsdelivr.net
+
+                                                   *g:goda_preview#code_style*
+g:goda_preview#code_style
+		The chroma style of the code blocks of Markdown.  Empty turns
+		highlighting off.  The styles are listed at
+		https://xyproto.github.io/splash/docs/ >vim
+			let g:goda_preview#code_style = 'monokailight'
+<		The stylesheet comes with the code, even when
+		|g:goda_preview#disable_default_css| is set; the elements have
+		chroma's classes under "pre.chroma".
+		Default: "github"
+
+                                              *g:goda_preview#code_style_dark*
+g:goda_preview#code_style_dark
+		The chroma style used instead when the browser prefers a dark
+		colour scheme.  Empty uses |g:goda_preview#code_style| in both.
+		Default: "github-dark"
+
+                                                  *g:goda_preview#unsafe_html*
+g:goda_preview#unsafe_html
+		Render raw HTML of the document: Markdown's inline HTML,
+		reStructuredText's "raw" directive, and Textile without its
+		restricted mode.  Scripts of the document never run in the
+		page, even then.  AsciiDoc's passthrough is always rendered
+		(|goda-preview-asciidoc|).
+		Default: 0
+
+                                              *g:goda_preview#hard_line_break*
+g:goda_preview#hard_line_break
+		Make every newline in a Markdown paragraph a line break.
+		Default: 0
+
+                                                     *g:goda_preview#open_cmd*
+g:goda_preview#open_cmd
+		The command that opens the URL.  A |String| is run by 'shell'
+		with the URL appended; a |List| is run as it is, with the URL
+		as its last argument.  Empty opens the default browser of the
+		system. >vim
+			let g:goda_preview#open_cmd = ['firefox', '--new-window']
+<		Default: ""
+
+                                                        *g:goda_preview#delay*
+g:goda_preview#delay
+		Milliseconds to wait after a change before the buffer is sent:
+		the changes made meanwhile are sent together.
+		Default: 100
+
+                                                       *g:goda_preview#binary*
+g:goda_preview#binary
+		The binary built by |:GodaPreviewBuild| and started by
+		|:GodaPreviewOpen|.
+		Default: "goda-preview" in the cache directory ("goda-preview"
+		under |stdpath()| "cache" in Neovim; under $XDG_CACHE_HOME/vim,
+		%LOCALAPPDATA%\vim or ~/.cache/vim in Vim)
+
+==============================================================================
+SECURITY                                               *goda-preview-security*
+
+The server listens on 127.0.0.1 only, on a random port.  Every URL carries a
+random token, and a request naming another host is refused, so other web
+pages cannot read the previews.  Only the directory of the file is served,
+for its images.
+
+The page allows no inline scripts and no scripts but its own, mermaid's,
+KaTeX's and asciidoctor.js.
+The include directive of reStructuredText is disabled.
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:

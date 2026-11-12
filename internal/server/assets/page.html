@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}}</title>
+{{if .DefaultCSS}}<link rel="stylesheet" href="../../assets/default.css">
+{{end}}{{if .HighlightCSS}}<link rel="stylesheet" href="../../highlight.css">
+{{end}}{{if .CustomCSS}}<link id="custom-css" rel="stylesheet" href="../../custom.css">
+{{end}}<script src="../../assets/preview.js" data-mermaid="{{.MermaidURL}}" data-katex="{{.KaTeXURL}}" data-asciidoctor="{{.AsciidoctorURL}}" defer></script>
+</head>
+<body>
+<main id="content" class="goda-preview"></main>
+</body>
+</html>
